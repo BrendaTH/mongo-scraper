@@ -45,14 +45,34 @@ module.exports = function (app) {
           .find(".card__headline__text")
           .text();
 
-        console.log("title: " + result.title);
-        console.log("link: " + result.link);
-        console.log("summary: " + result.summary);
+        // console.log("title: " + result.title);
+        // console.log("link: " + result.link);
+        // console.log("summary: " + result.summary);
         // save this article into the scraped articles array
         scrapedArticlesArray.push(result);
       });
-      // TODO: you need to filter out any saved articles from this array
-      res.render("scrape", { news_items: scrapedArticlesArray });
+      // TODO: you need to filter out any already saved articles from this array
+      db.Article.find({})
+        .then(function (dbSavedArticle) {
+          console.log("in then for scrape and filter on saved articles");
+          // If we were able to successfully find Articles,
+          dbSavedArticle.forEach(function (item, index) {
+            for (var i = 0; i < scrapedArticlesArray.length; i++) {
+              // bjt console.log(index + ": " + item.title);
+              // returns 0 if equal - a falsey value
+              var matchedOnZero = item.title.localeCompare(scrapedArticlesArray[i].title);
+              if (matchedOnZero === 0) {
+                // got a match remove from Scraped Article Array
+                scrapedArticlesArray.splice(i,1);
+              }
+            }
+          });
+          res.render("scrape", { news_items: scrapedArticlesArray });
+        })
+        .catch(function (err) {
+          console.log("in articles error bjt ");
+        });
+
 
       /*
             db.Article.find({})
@@ -105,7 +125,7 @@ module.exports = function (app) {
   // and displayed on the website
   app.post("/saveArticle", function (req, res) {
     // Grab every document in the Articles collection
-    console.log("in articles bjt ");
+    console.log("in save articles bjt ");
     var savedArticle = req.body;
 
     db.Article.create({
@@ -113,8 +133,10 @@ module.exports = function (app) {
       link: savedArticle.link,
       summary: savedArticle.summary
     }).then(function (result) {
-      console.log("bjt redirect to scrape");
-      res.redirect('/scrape');
+      console.log(result);
+      console.log("bjt in then for save article");
+      // res.status(200).end("article saved");
+      res.json(result);
     })
       .catch(function (err) {
         console.log(err);

@@ -20,11 +20,8 @@ $(function () {
   $(".save-article-btn").on("click", function () {
     console.log('in save-article-btn click');
     var title = $(this).attr("data-t");
-    console.log("the data-t " + title);
     var link = $(this).attr("data-l");
-    console.log("the data-l " + link);
     var summary = $(this).attr("data-s");
-    console.log("the data-s " + summary);
     $.ajax({
       type: "POST",
       url: "/saveArticle",
@@ -36,7 +33,9 @@ $(function () {
       }
     })
       .then(function (data) {
-        console.log(data);
+        console.log("in then for save article");
+        console.log(status);
+        location.reload();
       });
     return false;
   });
@@ -51,6 +50,7 @@ $(function () {
     })
       .then(function (data) {
         console.log(data);
+        console.log("in then for delete all saved articles");
         location.reload();
       });
     return false;
