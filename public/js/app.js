@@ -56,6 +56,47 @@ $(function () {
     return false;
   });
 
+  
+
+  $(".add-note-btn").on("click", function () {
+    console.log('in add-note-btn click');
+    event.preventDefault();
+    // add the id for this article
+    var p = $("<p>").text("Id: " + $(this).data('id'));
+    $("#noteId").append(p);
+    // cause modal to pop up
+    $("#add-note-modal").modal();
+    location.reload();
+
+  });
+
+      /**
+     * On-Click event to submit the new note
+     * to the database
+     */
+    $("#place-submit").on("click", function (event) {
+      event.preventDefault(); 
+      var articleId = $("#noteId").text().substring(3);
+      console.log("id is " + articleId);
+    
+      var newNote = {
+          id: articleId,
+          summary: $("#note-summary").val().trim(),
+      };
+
+      // Send the Post request to village_db Places Table
+      $.ajax("/note", {
+          type: "POST",
+          data: newNote
+      }).then(
+          function () {
+              console.log("created new note");
+              // Reload the saved  to get the updated list
+              location.reload();
+          }
+      )
+  });
+
   /**
    * On-Click event delete single article from database 
    */

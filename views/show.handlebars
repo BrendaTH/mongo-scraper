@@ -36,8 +36,33 @@
       <button type="submit" class="btn btn-form delete-article-btn raised btn-lg mb-4" data-t='{{title}}'
         data-l='{{link}}' data-s='{{summary}}' data-i='{{_id}}'><span class="fa fa-fire"></span>Delete
         Article</button>
+      <button type="submit" class="btn btn-form add-note-btn raised btn-lg mb-4" data-t='{{title}}' data-l='{{link}}'
+        data-s='{{summary}}' data-id='{{_id}}'><span class="fa fa-fire"></span>Add
+        Note</button>
     </div>
     {{/each}}
   </div>
+
+  {{!-- modal to add note --}}
   <div id="notes"></div>
+  <div class="modal fade" role="dialog" id="add-note-modal">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+        </div>
+        <div id="noteId"> </div>
+        <form>
+          <div class="form-group">
+            <label  for="summary">New Note</label>
+            <textarea class="form-control" id="note-summary" rows="4" placeholder="Enter your note here"></textarea>
+          </div>
+          <button type="submit" class="btn btn-form" id="place-submit">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+
+
 </div>

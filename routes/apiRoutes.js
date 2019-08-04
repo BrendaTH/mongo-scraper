@@ -51,7 +51,7 @@ module.exports = function (app) {
         // save this article into the scraped articles array
         scrapedArticlesArray.push(result);
       });
-      // TODO: you need to filter out any already saved articles from this array
+      // TODO: bjt you need to filter out any already saved articles from this array
       db.Article.find({})
         .then(function (dbSavedArticle) {
           console.log("in then for scrape and filter on saved articles");
