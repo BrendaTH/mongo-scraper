@@ -5,11 +5,11 @@
 
 ### OVERVIEW and OPERATION: 
 
-**Home page** - route is '/'  This takes user to the main page. From the nav bar the user can go to 
+**Home page** - route is '/'  This takes user to the main page. A carousel shows various pictures for visual interest. From the nav bar the user can go to 
 * scrape articles 
 * show saved articles 
 * delete all saved articles. 
-A carousel shows various pictures for visual interest.
+
 
 **Show page** - route is '/show' This route displays all the saved Articles. From here the user can 
 * delete an article (removes it from Articles mongo database), 
