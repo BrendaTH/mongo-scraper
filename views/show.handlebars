@@ -39,6 +39,9 @@
       <button type="submit" class="btn btn-form add-note-btn raised btn-lg mb-4" data-t='{{title}}' data-l='{{link}}'
         data-s='{{summary}}' data-id='{{_id}}'><span class="fa fa-fire"></span>Add
         Note</button>
+      <button type="submit" class="btn btn-form show-all-notes-btn raised btn-lg mb-4" data-t='{{title}}'
+        data-l='{{link}}' data-s='{{summary}}' data-id='{{_id}}'><span class="fa fa-fire"></span>Show
+        Notes</button>
     </div>
     {{/each}}
   </div>
@@ -54,10 +57,10 @@
         <div id="noteId"> </div>
         <form>
           <div class="form-group">
-            <label  for="summary">New Note</label>
+            <label for="summary">New Note</label>
             <textarea class="form-control" id="note-summary" rows="4" placeholder="Enter your note here"></textarea>
           </div>
-          <button type="submit" class="btn btn-form" id="place-submit">Submit</button>
+          <button type="submit" class="btn btn-form" id="note-submit">Submit</button>
         </form>
       </div>
     </div>

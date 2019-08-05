@@ -63,7 +63,7 @@ module.exports = function (app) {
               var matchedOnZero = item.title.localeCompare(scrapedArticlesArray[i].title);
               if (matchedOnZero === 0) {
                 // got a match remove from Scraped Article Array
-                scrapedArticlesArray.splice(i,1);
+                scrapedArticlesArray.splice(i, 1);
               }
             }
           });
@@ -72,32 +72,6 @@ module.exports = function (app) {
         .catch(function (err) {
           console.log("in articles error bjt ");
         });
-
-
-      /*
-            db.Article.find({})
-              .then(function (dbDoc) {
-                console.log("in then for scrape " + JSON.stringify(dbDoc));
-                if (!dbDoc) {
-                  console.log("pushing resutl to articles array");
-                  // this title not found in saved 
-                  // so push it onto the scraped pile
-                  articlesArray.push(allArticlesArray[i]);
-                }
-                // if this is the last article render the scraped page
-                // minus any saved articles
-                console.log("index is " + i);
-                if (i >= allArticlesArray.length - 1) {
-                  console.log("rendering scrape page");
-                  res.render("scrape", { news_items: articlesArray });
-                }
-              })
-              .catch(function (err) {
-                console.log(err);
-                // If an error occurred, send it to the client
-                res.json(err);
-              });
-      */
     });
   });
 
@@ -119,6 +93,37 @@ module.exports = function (app) {
         res.json(err);
       });
   });
+
+  // ****************************************
+  // A GET route for showing the notes for an article
+  app.get("/getNotes/:id", function (req, res) {
+    // first fetch the article with the notes
+    console.log(req.params.id);
+    db.Article.findOne({ _id: req.params.id })
+      // ..and populate all of the notes associated with it
+      .populate("note")
+      .then(function (dbArticle) {
+        console.log(dbArticle);
+        // for each note id in the notes array fetch the note
+        // dbArticle should have something like _id, notes, title, link, summary
+        // notes are in an array
+        db.Note.find({ _id: { $in: dbArticle.notes } })
+          .then(function (dbNotes) {
+            console.log("the notes for find notes are");
+            console.log(dbNotes);
+            res.json(dbNotes);
+          })
+      })
+      .catch(function (err) {
+        // If an error occurred, send it to the client
+        console.log("error in get notes for an article")
+        console.log(err);
+        res.json(err);
+      });
+
+
+  });
+
 
   // ****************************************
   // A POST route for saving an article scraped 
@@ -151,18 +156,21 @@ module.exports = function (app) {
     // Grab every document in the Articles collection
     console.log("in delete all saved articles bjt ");
 
-    db.Article.remove({})
+    db.Article.deleteMany({})
       .then(function (result) {
-        console.log(result);
-        res.json(result);
-
+        console.log("articles: " + result);
+        // now remove all the notes too 
+        db.Note.deleteMany({})
+          .then(function (result) {
+            console.log("notes: " + result);
+            res.json(result);
+          })
       })
       .catch(function (err) {
         console.log(err);
         // If an error occurred, send it to the client
         res.json(err);
       });
-
   });
 
   // ****************************************
@@ -171,36 +179,33 @@ module.exports = function (app) {
     // Grab every document in the Articles collection
     console.log("in delete an article bjt ");
 
-    db.Article.remove({ _id: req.params.id })
-      .then(function (result) {
-        console.log("bjt in then for delete article");
-        res.status(200).end("id " + req.params.id + " deleted");
-      })
-      .catch(function (err) {
-        console.log(err);
-        // If an error occurred, send it to the client
-        res.json(err);
-      });
-
-  });
-
-  // Route for getting all saved Articles from the db
-  app.get("/articles", function (req, res) {
-    // Grab every document in the Articles collection
-    console.log("in articles bjt ");
-    db.Article.find({})
+    db.Article.findOne({ _id: req.params.id })
+      // ..and populate all of the notes associated with it
+      // .populate("note")
       .then(function (dbArticle) {
-        // If we were able to successfully find Articles, send them back to the client
-        res.json(dbArticle);
-      })
-      .catch(function (err) {
-        console.log("in articles error bjt ");
+        // dbArticle should have something like _id, notes, title, link, summary
+        // notes are in an array
+        console.log("result of finding article: " + dbArticle);
+        db.Note.deleteMany({ _id: { $in: dbArticle.notes } })
+          .then(function (noteResult) {
+            console.log("result of deleting notes: " + noteResult);
 
-        // If an error occurred, send it to the client
-        res.json(err);
+            // now delete the article
+            db.Article.deleteOne({ _id: req.params.id })
+              .then(function (articleDeleteResult) {
+                console.log("result of deleting article: " + articleDeleteResult);
+                res.status(200).end("id " + req.params.id + " deleted");
+              })
+          })
+          .catch(function (err) {
+            console.log("error in delete one article: " + err);
+            // If an error occurred, send it to the client
+            res.json(err);
+          });
       });
   });
 
+  // **********************************************
   // Route for grabbing a specific Article by id, populate it with it's note
   app.get("/articles/:id", function (req, res) {
     // Using the id passed in the id parameter, prepare a query that finds the matching one in our db...
@@ -217,21 +222,27 @@ module.exports = function (app) {
       });
   });
 
+  // **********************************************
   // Route for saving/updating an Article's associated Note
   app.post("/articles/:id", function (req, res) {
     // Create a new note and pass the req.body to the entry
-    db.Note.create(req.body)
+    console.log('in post for save note: ' + req.body.summary);
+    var savedNote = req.body;
+
+    db.Note.create({ body: savedNote.summary })
       .then(function (dbNote) {
         // If a Note was created successfully, find one Article with an `_id` equal to `req.params.id`. Update the Article to be associated with the new Note
         // { new: true } tells the query that we want it to return the updated User -- it returns the original by default
         // Since our mongoose query returns a promise, we can chain another `.then` which receives the result of the query
-        return db.Article.findOneAndUpdate({ _id: req.params.id }, { note: dbNote._id }, { new: true });
+        return db.Article.findOneAndUpdate({ _id: req.params.id }, { $push: { notes: dbNote._id } }, { new: true });
       })
       .then(function (dbArticle) {
+        console.log('in then for articles/id findone and update: ' + dbArticle);
         // If we were able to successfully update an Article, send it back to the client
         res.json(dbArticle);
       })
       .catch(function (err) {
+        console.log(err);
         // If an error occurred, send it to the client
         res.json(err);
       });
