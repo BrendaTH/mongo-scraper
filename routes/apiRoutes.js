@@ -174,6 +174,24 @@ module.exports = function (app) {
   });
 
   // ****************************************
+  // A POST route for deleting a saved note
+  app.post("/deleteNote/:id", function (req, res) {
+    // Grab every document in the Articles collection
+    console.log("in delete an note bjt ");
+
+    db.Note.findOneAndDelete({ _id: req.params.id })
+      .then(function (dbNote) { 
+        console.log("result of deleting a note " + dbNote);
+        res.status(200).end("id " + req.params.id + " note deleted");
+      })
+      .catch(function (err) {
+        console.log("error in delete one note: " + err);
+        // If an error occurred, send it to the client
+        res.json(err);
+      });
+  });
+
+  // ****************************************
   // A POST route for deleting a saved articles
   app.post("/deleteArticle/:id", function (req, res) {
     // Grab every document in the Articles collection

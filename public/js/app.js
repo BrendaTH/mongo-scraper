@@ -48,7 +48,7 @@ $(function () {
   /**
    * On-Click event bring up modal for new note
    */
-  $(".add-note-btn").on("click", function () {
+  $(".add-note-btn").on("click", function (event) {
     console.log('in add-note-btn click');
     event.preventDefault();
     // add the id for this article
@@ -104,10 +104,30 @@ $(function () {
     return false;
   });
 
+    /**
+   * On-Click event delete a saved note from database 
+   */
+  $("#notes-in-modal").on("click", ".delete-note-button", function() {
+  // $(".delete-note-button").on("click", function () {
+    console.log('in delete-note-button click');
+    var id = $(this).attr("data-id");
+    $.ajax({
+      type: "POST",
+      url: "/deleteNote/" + id,
+    })
+      .then(function (status) {
+        console.log("in then for delete article");
+        console.log(status);
+        location.reload(); 
+      });
+    return false;
+  });
+
   /**
    * On-Click event show all notes for this article 
    */
-  $(".show-all-notes-btn").on("click", function () {
+  $(".show-all-notes-btn").on("click", function (event) {
+    event.preventDefault();
     console.log('in delete-article-btn click');
     var id = $(this).attr("data-id");
     console.log("show all notes " + id);
@@ -115,10 +135,38 @@ $(function () {
       type: "GET",
       url: "/getNotes/" + id,
     })
-      .then(function (status) {
-        console.log("in then for get notes for an article");
-        console.log(status);
-        // location.reload();
+      .then(function (notes) {
+        console.log("bjt in then for get notes for an article");
+        console.log(notes);
+        // var myDiv = $('<div>');
+        // var myString = '<input type="radio" name="rbtnCount" id="' + item + '" value="' + item + '"/><label class="bigger-font"> ' + item + '</label>';
+        // var radioButton = $(myString);
+        // myDiv.append(radioButton);
+        // myDiv.appendTo('#target');
+        // empty out any extraneous stuff from the modal
+        $('#notes-in-modal').empty();
+        // for each note put it in an <li> tag and append to modal
+        for (var i = 0; i < notes.length; i++) {
+          console.log("body notes " + notes[i].body);
+          var myDiv = $('<div>');
+          var id = notes[i]._id;
+          var myString = '<div>' + notes[i].body + '<button type="button" class="button btn btn-primary delete-note-button" data-id="' + id + '"> delete </button><div>';
+          var myButton = $(myString);
+          myDiv.append(myButton);
+          myDiv.appendTo('#notes-in-modal');
+          // $("#show-note-summary").text(notes[i].body);
+          $("#show-note-modal").modal('toggle');
+        }
+        if (notes.length === 0) {
+          console.log("body notes: no notes to show " );
+          var myDiv = $('<div>');
+          var myString = '<div> No Available Notes for This Article<div>';
+          var myButton = $(myString);
+          myDiv.append(myButton);
+          myDiv.appendTo('#notes-in-modal');
+          $("#show-note-modal").modal('toggle');
+        }
+
       });
     return false;
   });
