@@ -45,10 +45,6 @@ module.exports = function (app) {
           .find(".card__headline__text")
           .text();
 
-        // console.log("title: " + result.title);
-        // console.log("link: " + result.link);
-        // console.log("summary: " + result.summary);
-        // save this article into the scraped articles array
         scrapedArticlesArray.push(result);
       });
       // TODO: bjt you need to filter out any already saved articles from this array
@@ -120,10 +116,7 @@ module.exports = function (app) {
         console.log(err);
         res.json(err);
       });
-
-
   });
-
 
   // ****************************************
   // A POST route for saving an article scraped 
@@ -180,8 +173,13 @@ module.exports = function (app) {
     console.log("in delete an note bjt ");
 
     db.Note.findOneAndDelete({ _id: req.params.id })
-      .then(function (dbNote) { 
+      .then(function (dbNote) {
         console.log("result of deleting a note " + dbNote);
+        // now delete the note in the article
+        return db.Article.findOneAndUpdate({ _id: req.body.articleId }, { $pull: { notes: req.params.id } });
+      })
+      .then(function (refResult) {
+        console.log("result fo deleting note from article " + refResult);
         res.status(200).end("id " + req.params.id + " note deleted");
       })
       .catch(function (err) {
@@ -241,7 +239,7 @@ module.exports = function (app) {
   });
 
   // **********************************************
-  // Route for saving/updating an Article's associated Note
+  // Route for saving an Article's associated Note
   app.post("/articles/:id", function (req, res) {
     // Create a new note and pass the req.body to the entry
     console.log('in post for save note: ' + req.body.summary);
@@ -267,160 +265,8 @@ module.exports = function (app) {
   });
 
   // **********************************************
-
-
-  /*
-    // load by category
-    app.get("/category/:category", function (req, res) {
-      res.json("category: " + req.params.category);
-      // db.Place.findall({ where: { category: req.params.category } }).then(function(result) {
-      //   res.render("search", {
-      //     example: result
-      //   });
-      // });
-    });
-  
-    // load by username
-    app.get("/user/:id", function (req, res) {
-      res.json("username: " + req.params.username);
-      // db.User.findOne({ where: { id: req.params.id } }).then(function(resuolt) {
-      //   res.render("search", {
-      //     example: result
-      //   });
-      // });
-    });
-    */
-
   // Render 404 page for any unmatched routes
   app.get("*", function (req, res) {
     res.render("404");
   });
-  /*
-    // create place
-    app.post("/place", function (req, res) {
-      var place = req.body;
-  
-      db.Place.create({
-        category: place.category,
-        place_name: place.place_name,
-        street_address: place.street_address,
-        city: place.city,
-        jurisdiction: place.jurisdiction,
-        zip_code: place.zip_code,
-        phone_number: place.phone_number,
-        summary: place.summary,
-        services: place.services,
-        external_link: place.external_link
-      }).then(function (result) {
-        res.redirect('/search');
-      })
-        .catch(function (err) {
-          console.log(err);
-        });
-    });
-  
-    // create review
-    app.post("/review", function (req, res) {
-      var review = req.body;
-  
-      db.Review.create({
-        rating: review.rating,
-        comments: review.comments,
-        PlaceId: review.PlaceId,
-        UserId: review.UserId
-      }).then(function (result) {
-        res.redirect('back');
-      })
-        .catch(function (err) {
-          console.log(err);
-        });
-    });
-  
-    // create user
-    app.post("/user", function (req, res) {
-      // these are possible responses to return to the front end
-      var dupResponse = "duplicate email";  // email is already in the database for a different use
-      var okResponse = "ok";                // user created successfully
-      var alreadyRegResponse = "already registered"; // user already in database
-      // determine if user already exists:
-      db.User.count({
-        where: {
-          user_name: req.body.username,
-          email_address: req.body.email,
-        }
-      }).then(count => {
-        // if count is zero then this one is new.
-        // if it alredy exists then no need to do anything more to db
-        if (count === 0) {
-          db.User.create({
-            user_name: req.body.username,
-            email_address: req.body.email,
-          }).then(function (dbUserCreateResult) {
-            res.status(200).end(dbUserCreateResult.dataValues.id.toString());
-          })
-            .catch(function (err) {
-              // Whenever a validation or flag fails, an error is thrown
-              // We can "catch" the error to prevent it from being "thrown", which could crash our node app
-              // this probably means someone is re-using an aleady existing email address
-              // email address is unique in the User table so this will throw an error
-              console.log(`
-              Error in post for User db:
-              Error Name: ${err.name}
-              Error Code: ${err.parent.code}
-              Error SQL Message: ${err.parent.sqlMessage}
-              failed to add new User
-              `);
-              res.status(200).end(dupResponse);
-            });
-        } else {
-          // User already exists just respond with ok
-          db.User.findOne({
-            where: {
-              user_name: req.body.username,
-              email_address: req.body.email,
-            }
-          }).then(function (userResult) {
-            res.status(200).end(userResult.dataValues.id.toString());
-          });
-        }
-      })
-    });
-  
-    // delete place
-    app.delete("/place/:id", function (req, res) {
-      db.Place.destroy({
-        where: {
-          id: req.params.id
-        }
-      }).then(function (result) {
-        if (result.affectedRows == 0) {
-          return res.status(404).end();
-        } else {
-          res.status(200).end();
-        }
-      })
-    });
-  
-    // delete review
-    app.delete("/review/:id", function (req, res) {
-      // db.Review.destroy({
-      //   where: {
-      //     id: req.params.id
-      //   }
-      // }).then(function (result) {
-      //   res.json(result);
-      // })
-    });
-  
-    // delete user
-    app.delete("/user/:id", function (req, res) {
-      // db.User.destroy({
-      //   where: {
-      //     id: req.params.id
-      //   }
-      // }).then(function (result) {
-      //   res.json(result);
-      // })
-    });
-    */
 };

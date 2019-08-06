@@ -104,16 +104,20 @@ $(function () {
     return false;
   });
 
-    /**
+  /**
    * On-Click event delete a saved note from database 
    */
   $("#notes-in-modal").on("click", ".delete-note-button", function() {
   // $(".delete-note-button").on("click", function () {
     console.log('in delete-note-button click');
     var id = $(this).attr("data-id");
+    var articleId = $(this).attr("data-articleId");
     $.ajax({
       type: "POST",
       url: "/deleteNote/" + id,
+      data: {
+        articleId
+      }
     })
       .then(function (status) {
         console.log("in then for delete article");
@@ -138,23 +142,16 @@ $(function () {
       .then(function (notes) {
         console.log("bjt in then for get notes for an article");
         console.log(notes);
-        // var myDiv = $('<div>');
-        // var myString = '<input type="radio" name="rbtnCount" id="' + item + '" value="' + item + '"/><label class="bigger-font"> ' + item + '</label>';
-        // var radioButton = $(myString);
-        // myDiv.append(radioButton);
-        // myDiv.appendTo('#target');
-        // empty out any extraneous stuff from the modal
         $('#notes-in-modal').empty();
         // for each note put it in an <li> tag and append to modal
         for (var i = 0; i < notes.length; i++) {
           console.log("body notes " + notes[i].body);
           var myDiv = $('<div>');
-          var id = notes[i]._id;
-          var myString = '<div>' + notes[i].body + '<button type="button" class="button btn btn-primary delete-note-button" data-id="' + id + '"> delete </button><div>';
+          var noteId = notes[i]._id;
+          var myString = '<div>' + notes[i].body + '<button type="button" class="button btn btn-primary delete-note-button" data-articleId="' + id + '" data-id="' + noteId + '"> delete </button><div>';
           var myButton = $(myString);
           myDiv.append(myButton);
           myDiv.appendTo('#notes-in-modal');
-          // $("#show-note-summary").text(notes[i].body);
           $("#show-note-modal").modal('toggle');
         }
         if (notes.length === 0) {
